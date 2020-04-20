@@ -1,0 +1,75 @@
+---
+# tasks file for create_missing_files
+- name: Creating directory for config files
+  file:
+    state: directory
+    path: "/etc/asterisk/template/{{ item }}"
+  loop:
+    - exten
+    - sip
+
+- name: Delete unused files
+  file:
+    state: absent
+    path: '/etc/asterisk/{{ item }}'
+  with_items:
+    - extensions.ael
+    - extensions.lua
+
+- name: Copy asterisk conf files
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: asterisk
+    group: asterisk
+    mode: '0644'
+  ignore_errors: true
+  loop:
+    - { src: 'sip.conf', dest: '/etc/asterisk/sip.conf' }
+    - { src: 'iax.conf', dest: '/etc/asterisk/iax.conf' }
+    - { src: 'exten_global.conf', dest: '/etc/asterisk/exten_global.conf' }
+    - { src: 'cdr.conf', dest: '/etc/asterisk/cdr.conf' }
+    - { src: 'cdr_adaptive_odbc.conf', dest: '/etc/asterisk/cdr_adaptive_odbc.conf' }
+    - { src: 'cdr_res_odbc.conf', dest: '/etc/asterisk/res_odbc.conf' }
+    - { src: 'cdr_odbc.ini', dest: '/etc/odbc.ini' }
+    - { src: 'cdr_odbcinst.ini', dest: '/etc/odbcinst.ini' }
+    - { src: 'modules.conf', dest: '/etc/asterisk/modules.conf' }
+    - { src: 'extensions.conf', dest: '/etc/asterisk/extensions.conf' }
+    - { src: 'out.conf', dest: '/etc/asterisk/template/exten/out.conf' }
+    - { src: 'sip_template.conf', dest: '/etc/asterisk/template/sip/0template.conf' }
+    - { src: 'exten_macro.conf', dest: '/etc/asterisk/template/exten/exten_macro.conf' }
+    - { src: 'other.conf', dest: '/etc/asterisk/template/exten/other.conf' }
+    - { src: 'func_odbc.conf', dest: '/etc/asterisk/func_odbc.conf' }
+
+- name: Copy file manager.conf
+  template:
+    src: manager.j2
+    dest: "/etc/asterisk/manager.conf"
+    mode: '0644'
+    owner: asterisk
+    group: asterisk
+
+- name: Copy sip general conf file
+  template:
+    src: general.j2
+    dest: "/etc/asterisk/sip_general.conf"
+    mode: '0644'
+    owner: asterisk
+    group: asterisk
+
+- name: Copy exten_check.sh
+  copy:
+    src: exten_check.sh
+    dest: "/var/lib/asterisk/agi-bin/"
+    mode: '0777'
+    owner: root
+    group: root
+
+- name: Creating regstring file
+  file:
+    force: no
+    path: /etc/asterisk/sip_regstring.conf
+    state: touch
+    owner: asterisk
+    group: asterisk
+    mode: '0644'

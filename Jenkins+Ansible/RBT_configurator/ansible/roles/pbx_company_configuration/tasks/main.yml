@@ -1,0 +1,33 @@
+---
+# DUNDi configuration.
+- name: Copy new files to {{ unit_name }}.
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: asterisk
+    group: asterisk
+    mode: '0644'
+  loop:
+    - { src: 'cdr_res_odbc.conf', dest: '/etc/asterisk/res_odbc.conf' }
+    - { src: 'cdr_odbc.ini', dest: '/etc/odbc.ini' }
+    - { src: 'other.conf', dest: '/etc/asterisk/template/exten/other.conf' }
+    - { src: 'func_odbc.conf', dest: '/etc/asterisk/func_odbc.conf' }
+
+# SIP users configuration.
+- name: SIP users
+  template:
+    src: users.j2
+    dest: /etc/asterisk/template/sip/users.conf
+
+# Local context configuration.
+- name: Local context
+  template:
+    src: local.j2
+    dest: /etc/asterisk/template/exten/local.conf
+
+# Restarting Asterisk on servers
+- name: Restart DUNDi on {{ unit_name }}
+  shell: "{{ item }}"
+  loop:
+    - sed -i 's/in-company/out-city/' /etc/asterisk/template/sip/0template.conf
+    - asterisk -rx 'core reload'

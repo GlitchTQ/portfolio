@@ -1,0 +1,24 @@
+[general]
+enabled = no
+;webenabled = yes
+
+port = 5038
+bindaddr = 0.0.0.0
+
+[pavel]
+secret = Password
+deny=0.0.0.0/0.0.0.0
+permit={{ ansible_default_ipv4.network }}/24
+permit=192.168.96.0/22
+read = system,call,log,verbose,command,agent,user,config,command,dtmf,reporting,cdr,dialplan,originate,message
+write = system,call,log,verbose,command,agent,user,config,command,dtmf,reporting,cdr,dialplan,originate,message
+writetimeout = 5000
+
+[admin]
+secret = Password
+deny=0.0.0.0/0.0.0.0
+permit={{ ansible_default_ipv4.network }}/24
+permit=192.168.96.0/22
+read = system,call,log,verbose,command,agent,user,config,command,dtmf,reporting,cdr,dialplan,originate,message
+write = system,call,log,verbose,command,agent,user,config,command,dtmf,reporting,cdr,dialplan,originate,message
+writetimeout = 5000

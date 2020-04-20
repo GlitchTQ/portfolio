@@ -1,0 +1,6 @@
+---
+- name: Advanced setup Asterisk
+  hosts: "{{ units }}"
+
+  roles:
+    - { role: pbx_trunk_configuration, when: ansible_distribution == 'CentOS' }

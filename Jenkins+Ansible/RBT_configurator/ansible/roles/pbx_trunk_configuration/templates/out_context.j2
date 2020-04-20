@@ -1,0 +1,12 @@
+[out-city]
+include => conf_user_add
+include => in-company
+ignorepat => 9
+exten => _9.,1,NoOp(Городской вызов на ${EXTEN})
+ same => n,Macro(recording,${CALLERID(num)},${EXTEN}))
+ same => n,Dial(SIP/{{ unit_name }}/${EXTEN:1},60,T)
+ same => n,HangUp()
+exten => _8[3489]XXXXXXXXX,1,Verbose(Городской вызов на ${EXTEN})
+ same => n,Macro(recording,${CALLERID(num)},${EXTEN}))
+ same => n,Dial(SIP/{{ unit_name }}/${EXTEN},60,T)
+ same => n,HangUp()

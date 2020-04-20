@@ -1,0 +1,6 @@
+---
+- name: Basic setup Asterisk
+  hosts: "{{ units }}" # дополнительно к переменным для роли
+
+  roles:
+    - { role: pbx_company_configuration, when: ansible_distribution == 'CentOS' }

@@ -1,0 +1,30 @@
+---
+- name: Set hostname
+  hostname:
+    name: "{{ units }}"
+  ignore_errors: yes
+
+- name: Set timezone to Asia/Yekaterinburg
+  timezone:
+    name: "{{ timezone }}"
+  ignore_errors: yes
+# Service
+- name: Service restart
+  service:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+  loop:
+    - { name: 'network', state: 'restarted' }
+    - { name: 'crond', state: 'restarted' }
+    - { name: 'mariadb', state: 'started' }
+    - { name: 'asterisk', state: 'started' }
+    - { name: 'httpd', state: 'restarted' }
+
+- name: Service enabled or disabled
+  service:
+    name: "{{ item.name }}"
+    enabled: "{{ item.state }}"
+  loop:
+    - { name: 'mariadb', state: 'yes' }
+    - { name: 'asterisk', state: 'yes' }
+    - { name: 'httpd', state: 'yes' }

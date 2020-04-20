@@ -1,0 +1,37 @@
+#!/usr/bin/env groovy
+// RBT_PBX_configurator
+// Check properties
+//properties([disableConcurrentBuilds()])
+
+currentBuild.displayName = "Build #${BUILD_NUMBER} for ${UNIT}"
+//currentBuild.description = ""
+
+pipeline {
+    agent any
+    options {
+      timestamps()
+      disableConcurrentBuilds()
+      buildDiscarder logRotator(artifactDaysToKeepStr: '',
+                                artifactNumToKeepStr: '',
+                                daysToKeepStr: '',
+                                numToKeepStr: '10')
+    }
+    parameters {
+        string(name: 'UNIT',
+               defaultValue: 'S',
+               description: 'Enter the name of subdivision.')
+    }
+    stages {
+        stage('Deploy Asterisk:') {
+            steps {
+                ansiblePlaybook (
+                    playbook: "ansible/asterisk_install.yml",
+                    extraVars: ['units': "${UNIT}-PBX"],
+                    inventory: "/etc/ansible/hosts",
+                    colorized: true,
+                    hostKeyChecking: false
+                )
+            }
+        }
+    }
+}

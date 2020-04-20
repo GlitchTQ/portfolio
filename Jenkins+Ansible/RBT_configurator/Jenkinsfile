@@ -1,0 +1,105 @@
+#!/usr/bin/env groovy
+// RBT_PBX_configurator
+// Check properties
+//properties([disableConcurrentBuilds()])
+
+currentBuild.displayName = "Build #${BUILD_NUMBER} for ${UNIT}"
+currentBuild.description = "MASK: ${MASK}X<br />" +
+                           "LOCAL: ${LOCAL}<br />" +
+                           "LENDLINE: ${LENDLINE}<br />" +
+                           "DUNDi: ${DUNDi}"
+
+pipeline {
+    agent any
+    options {
+      timestamps()
+      disableConcurrentBuilds()
+      buildDiscarder logRotator(artifactDaysToKeepStr: '',
+                                artifactNumToKeepStr: '',
+                                daysToKeepStr: '',
+                                numToKeepStr: '10')
+    }
+    parameters {
+        string(name: 'UNIT',
+               defaultValue: 'S',
+               description: 'Enter the name of subdivision.')
+
+        booleanParam(name: 'LOCAL',
+                     defaultValue: false ,
+                     description: 'Generating local default settings.')
+        string(name: 'MASK',
+               defaultValue: '',
+               description: 'Enter the local mask number for subdivision.')
+
+        booleanParam(name: 'LENDLINE',
+                     defaultValue: false ,
+                     description: 'Generating lendline settings.')
+        choice(name: 'TRUNK',
+               choices:['vATC','Trunk'],
+               description: 'Choices type of trunk.')
+        string(name: 'HOST',
+               defaultValue: '',
+               description: 'Enter the HOST for provider service.')
+        string(name: 'USER',
+               defaultValue: '',
+               description: 'Enter the user for provider service.')
+        string(name: 'AUTH',
+               defaultValue: '',
+               description: 'Enter the auth. user for provider service.')
+        string(name: 'PASS',
+               defaultValue: '',
+               description: 'Enter the password for provider service.')
+        booleanParam(name: 'DUNDi',
+                     defaultValue: false ,
+                     description: 'Update DUNDi DB?')
+    }
+    stages {
+        stage('LOCAL settings:') {
+            when {
+                expression { params.LOCAL == true }
+            }
+            steps {
+                ansiblePlaybook (
+                    playbook: "ansible/PBX_default_config.yml",
+                    extraVars: ['unit_name': UNIT,
+                                'unit_mask': MASK,
+                                'units': "${UNIT}-PBX"],
+                    inventory: "/etc/ansible/hosts",
+                    colorized: true,
+                    hostKeyChecking: false
+                )
+                sh "scripts/RBT_DB_update_mask_info.py ${UNIT} ${MASK}"
+            }
+        }
+        stage('Trunk settings:') {
+            when {
+                expression { params.LENDLINE == true }
+            }
+            steps {
+                ansiblePlaybook (
+                    playbook: "ansible/PBX_trunk_config.yml",
+                    extraVars: ['units': "${UNIT}-PBX",
+                                'unit_name':UNIT,
+                                'unit_mask': MASK,
+                                'trunk_host': HOST,
+                                'trunk_user': USER,
+                                'trunk_auth_user': AUTH,
+                                'trunk_password': PASS],
+                    inventory: '/etc/ansible/hosts',
+                    colorized: true,
+                    hostKeyChecking: false
+                )
+                sh "scripts/RBT_DB_update_trunk_info.py " +
+                   "${UNIT} ${HOST} ${USER} ${AUTH} ${PASS} ${TRUNK}"
+            }
+        }
+        stage('DUNDi DB update:') {
+            when {
+                expression { params.DUNDi == true }
+            }
+            steps {
+                sh "scripts/RBT_DUNDi_DB_update.py ${UNIT} ${MASK}"
+            }
+        }
+    }
+}

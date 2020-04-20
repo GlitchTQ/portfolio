@@ -1,0 +1,27 @@
+---
+# SIP settings for trunk
+- name: SIP trunk config file
+  template:
+    src: trunk.j2
+    dest: /etc/asterisk/template/sip/{{ unit_name }}_trunk.conf
+
+- name: SIP regstring
+  shell: "echo {{ trunk_regstring }} >> /etc/asterisk/sip_regstring.conf"
+
+#Context settings for trunk
+- name: In context
+  template:
+    src: in_context.j2
+    dest: /etc/asterisk/template/exten/in.conf
+
+- name: Out context
+  template:
+    src: out_context.j2
+    dest: /etc/asterisk/template/exten/out.conf
+
+# Reload SPI and Dialplan
+- name: SIP reload
+  shell: asterisk -rx 'sip reload'
+
+- name: Dialplan reload
+  shell: asterisk -rx 'dialplan reload'

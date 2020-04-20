@@ -1,0 +1,25 @@
+---
+- name: Copy ACDR viewer
+  copy:
+    src: www.tar
+    dest: /opt/
+
+- name: unarchive ACDR viewer
+  unarchive:
+    src: /opt/www.tar
+    dest: /var/www/
+    remote_src: yes
+
+- name: Copy file asterisk.conf for ACDR
+  copy:
+    src: asterisk.conf
+    dest: /etc/httpd/conf.d/
+    mode: '0644'
+
+- name: Create default user for ACDR
+  shell: "htpasswd -cb /var/www/Asterisk-CDR-Viewer-Mod/.htpasswd admin Password"
+
+- name: Service httpd restart
+  service:
+    name: httpd
+    state: restarted

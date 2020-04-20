@@ -1,0 +1,4 @@
+---
+# vars file for pbx_trunk_configuration
+trunk_regstring: "register={{ trunk_user }}:{{ trunk_password }}:{{ trunk_auth_user }}@{{ trunk_host }}/{{ trunk_user }}"
+unit_number: "{{ unit_mask }}0"

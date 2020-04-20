@@ -1,0 +1,6 @@
+---
+- name: Install Asterisk for Centos 7
+  hosts: "{{ unit }}"
+
+  roles:
+    - { role: install_asterisk, when: ansible_distribution == 'CentOS' }

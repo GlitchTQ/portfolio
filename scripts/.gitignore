@@ -1,0 +1,5 @@
+/python/temp/*
+/python/library/__pycache__/*
+/python/mail/__pycache__/*
+/.idea/*
+/src/*

@@ -1,0 +1,8 @@
+---
+- name: Copy cdr.sql
+  copy:
+    src: cdr.sql
+    dest: /opt/cdr.sql
+
+- name: Mysql
+  shell: "mysql < /opt/cdr.sql"

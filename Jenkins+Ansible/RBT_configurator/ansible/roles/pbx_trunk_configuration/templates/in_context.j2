@@ -1,0 +1,8 @@
+[in-city]
+exten => {{ trunk_user }},1,Answer()
+ same => n,GotoIf($[${BLACKLIST()}=1]?blacklist)
+ same => n,Macro(recording,${CALLERID(num)},${EXTEN})
+ same => n,Dial(SIP/{{ unit_number }},60,tm)
+ same => n,Goto(end)
+ same => n(blacklist),Playback(ru/tt-weasels)
+ same => n(end),HangUp()

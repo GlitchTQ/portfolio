@@ -1,0 +1,20 @@
+---
+#Tasks for deployed asterisk on proxmox container
+
+- include_tasks: aster_install.yml
+
+- include_tasks: sshd.yml
+
+- include_tasks: usrs.yml
+
+- include_tasks: mysql.yml
+
+- include_tasks: cdr.yml
+
+- include_tasks: www.yml
+
+- include_tasks: cron.yml
+
+- include_tasks: file_for_asterisk.yml
+
+- include_tasks: service.yml

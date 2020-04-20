@@ -1,0 +1,35 @@
+---
+- name: Service mariadb started
+  service:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+  loop:
+  #  - { name: 'network', state: 'restarted' }
+    - { name: 'mariadb', state: 'started' }
+
+- name: Create a new database
+  mysql_db:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "asterisk"
+    - "cdrdb"
+
+- mysql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.pass }}"
+    host: localhost
+    priv: "*.*:ALL"
+    state: present
+  loop:
+    - { name: 'asterisk', pass: 'Password' }
+    - { name: 'onec', pass: 'Password' }
+
+- name: mysql credential asterisk
+  shell: mysql -u root -Bse "GRANT ALL PRIVILEGES ON *.* TO 'asterisk'@'%' IDENTIFIED BY PASSWORD '*Password';"
+
+- name: mysql credential onec
+  shell: mysql -u root -Bse "GRANT ALL PRIVILEGES ON *.* TO 'onec'@'%' IDENTIFIED BY PASSWORD '*Password';"
+
+- name: mysql
+  shell: mysql -u root -Bse "flush privileges;"

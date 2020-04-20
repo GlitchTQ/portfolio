@@ -1,0 +1,11 @@
+---
+- name: Add group asterisk
+  group:
+    name: asterisk
+    state: present
+
+- name: Add user asterisk
+  user:
+    name: asterisk
+    group: asterisk
+    create_home: true

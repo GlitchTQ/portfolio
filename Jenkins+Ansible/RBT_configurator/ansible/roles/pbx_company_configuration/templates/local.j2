@@ -1,0 +1,5 @@
+[local]
+exten => _{{ unit_mask }}X,1,NoOp(Локальный вызов на ${EXTEN})
+ same =>      n,Macro(recording,${CALLERID(num)},${EXTEN})
+ same =>      n,Dial(SIP/${EXTEN},45,Tt)
+ same =>      n,Hangup()

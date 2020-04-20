@@ -1,0 +1,184 @@
+---
+- name: Disable SELinux
+  selinux:
+    state: disabled
+  ignore_errors: yes
+  register: SELstat
+
+- name: Reboot
+  reboot:
+  when: SELstat.changed
+
+- name: Update the system
+  package:
+    name: '*'
+    state: latest
+
+- name: Install VMware tools
+  yum:
+    name: open-vm-tools
+    state: installed
+  when:
+    - ansible_virtualization_type == "VMware"
+
+- name: Install of additional programs
+  yum:
+    name: "{{ item }}"
+    state: installed
+  loop:
+    - "epel-release"
+    - "net-tools"
+    - "jansson-devel"
+    - "mc"
+    - "psmisc"
+    - "vim"
+    - "nmap"
+    - "htop"
+    - "mtr"
+    - "gmime-devel"
+    - "ncurses-devel"
+    - "newt-devel"
+    - "libxml2-devel"
+    - "libtiff-devel"
+    - "kernel-devel"
+    - "audiofile-devel"
+    - "gtk2-devel"
+    - "uuid-devel"
+    - "mariadb"
+    - "mariadb-devel"
+    - "mariadb-server"
+    - "MySQL-python"
+    - "mysql-connector-odbc"
+    - "sqlite-devel"
+    - "libsqlite3x-devel"
+    - "sqlite2-devel"
+    - "httpd"
+    - "php"
+    - "php-xml"
+    - "php-mysql"
+    - "php-pear"
+    - "php-mbstring"
+    - "tftp-server"
+    - "sendmail"
+    - "sendmail-cf"
+    - "unixODBC-devel"
+    - "libcurl-devel"
+    - "libogg-devel"
+    - "libvorbis-devel"
+    - "spandsp-devel"
+    - "freetds-devel"
+    - "net-snmp-devel"
+    - "corosynclib-devel"
+    - "libtool-ltdl-devel"
+    - "lua-devel"
+    - "radiusclient-ng-devel"
+    - "portaudio-devel"
+    - "neon-devel"
+    - "libical-devel"
+    - "openldap-devel"
+    - "bluez-libs-devel"
+    - "jack-audio-connection-kit-devel"
+    - "gsm-devel"
+    - "libedit-devel"
+    - "libsrtp-devel"
+    - "pjproject-devel"
+    - "libxslt-devel"
+    - "python-devel"
+    - "libpcap-devel"
+    - "tcpdump"
+
+- name: Install the 'Development tools' package group
+  yum:
+    name: "@Development tools"
+    state: present
+
+- name: Download Asterisk
+  get_url:
+    url: 'http://downloads.asterisk.org/pub/telephony/asterisk/releases/asterisk-14.7.5.tar.gz'
+    dest: /opt/asterisk-14.7.5.tar.gz
+
+- name: Unarchive Asterisk
+  unarchive:
+    src: /opt/asterisk-14.7.5.tar.gz
+    dest: /opt
+    remote_src: yes
+
+- name: Configure Asterisk
+  command: "{{ item }} chdir=/opt/asterisk-14.7.5"
+  loop:
+    - ./configure --libdir=/usr/lib64 --with-pjproject-bundled --with-crypto --with-ssl=ssl --with-strp
+
+- name: Make menuselect for Asterisk
+  command: "{{ item }} chdir=/opt/asterisk-14.7.5"
+  loop:
+    - make menuselect.makeopts
+
+- name: Menuselect for Asterisk
+  command: "{{ item }} chdir=/opt/asterisk-14.7.5/"
+  loop:
+    - menuselect/menuselect --enable cdr_mysql --enable app_mysql --enable format_mp3 --enable res_config_mysql menuselect.makeopts
+
+#- name: Get MP3 source for Asterisk
+#  command: "./get_mp3_source.sh chdir=/opt/asterisk-14.7.5/contrib/scripts/"
+#  ignore_errors: yes
+
+- name: Make Asterisk
+  command: "{{ item }} chdir=/opt/asterisk-14.7.5"
+  loop:
+    - make
+    - make install
+    - make samples
+    - make config
+
+- name: Create directory for sounds
+  file:
+    path: /var/lib/asterisk/sounds/ru
+    state: directory
+
+- name: Copy additional sounds for Asterisk
+  copy:
+    src: additional-sounds.tar.gz
+    dest: /opt/
+
+- name: Copy standart sounds for Asterisk
+  copy:
+    src: standard-sounds.tar.gz
+    dest: /opt/
+
+- name: Unarchive additional sounds for Asterisk
+  unarchive:
+    src: /opt/additional-sounds.tar.gz
+    dest: /var/lib/asterisk/sounds/ru
+    remote_src: yes
+
+- name: Unarchive standart sounds for Asterisk
+  unarchive:
+    src: /opt/standard-sounds.tar.gz
+    dest: /var/lib/asterisk/sounds/ru
+    remote_src: yes
+
+- name: Get the SNGREP
+  git:
+    repo: 'https://github.com/irontec/sngrep'
+    dest: /opt/sngrep
+    clone: yes
+
+- name: Start bootstrap.sh for SNGREP
+  command: "./bootstrap.sh chdir=/opt/sngrep"
+
+- name: Start configure for SNGREP
+  command: "./configure chdir=/opt/sngrep"
+
+- name: Make for SNGREP
+  command: "{{ item }} chdir=/opt/sngrep"
+  loop:
+    - make
+    - make install
+
+- name: vimrc
+  shell: 'echo -e "\ncolorscheme delek" >> /etc/vimrc'
+
+- name: Copy codec g729
+  copy:
+    src: codec_g729.so
+    dest: /usr/lib64/asterisk/modules/codec_g729.so

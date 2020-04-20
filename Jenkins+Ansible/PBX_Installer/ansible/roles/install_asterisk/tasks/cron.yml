@@ -1,0 +1,20 @@
+---
+- cron:
+    name: Deleting blank entries
+    minute: 0
+    job: "/usr/bin/find /monitor -depth -type f -size -44b | xargs rm -f"
+    user: root
+
+- cron:
+    name: Deleting irrelevant entries
+    minute: 12
+    hour: 4
+    job: "/usr/bin/find /monitor -depth -type f -mtime +180 | xargs rm -f"
+    user: root
+
+- cron:
+    name: Rebooting asterisk.
+    minute: 0
+    hour: 3
+    job: "/usr/sbin/reboot"
+    user: root
